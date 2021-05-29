@@ -17,11 +17,10 @@ public class GeoHash implements GeoDB {
 	public static final double[] LATITUDE_RANGE = { -90, 90 };
 	public static final double[] LONGITUDE_RANGE = { -180, 180 };
 	
-	// store bits of precision as instance variable 
-	int bitsOfPrecision;
+	private HashTree hashy = new HashTree();
 	
-	// store a Hashmap
-	private HashMap<String, double[]> hashy = new HashMap<String, double[]>();
+	// store bits of precision as instance variable 
+	int bitsOfPrecision; 
 	 
 	/* Begin GeoDB implementation */ 
 	
@@ -44,16 +43,10 @@ public class GeoHash implements GeoDB {
     * @param lat
     * @param lon
     */
-   public void insert(double lat, double lon) {
-	   
-	   // HashMap allows you to check if geohash already exists in constant time. 
+   public void insert(double lat, double lon) { 
 	   String geoHash = toHashString(geohash(lat, lon, bitsOfPrecision));
-	   if (!hashy.containsKey(geoHash)) {
-		   // if it does not exist, put into HashMap and store lat/lon in respective trees. 
-		   hashy.put(geoHash, new double[] {lat, lon});
-		    
-	   } 
-	   
+	   System.out.println("GeoHash = " + geoHash);
+	   hashy.insertGeoHash(geoHash, lat, lon);
    }
 
    /**
@@ -74,11 +67,12 @@ public class GeoHash implements GeoDB {
    public boolean delete(double lat, double lon) {
 	   // only delete if saved ; check is O(1)
 	   String geoHash = toHashString(geohash(lat, lon, bitsOfPrecision));
-	   if (hashy.containsKey(geoHash)) {
-		   hashy.remove(geoHash); 
-		   return true;
-	   }
-	   return false;
+	   /* 
+	    * Since multiple coord pairs can map to same geoHash, 
+	    * don't delete the geoHash itself but delete the lat lon pair 
+	    * stored in the leaf/last character pointer of the geohash. 
+	    */
+	   return hashy.removeGeoHash(geoHash, lat, lon);  
    }
 
    /**
@@ -287,69 +281,24 @@ public class GeoHash implements GeoDB {
 			throw new RuntimeException(v1 + " != " + v2);
 		}
 	}
-
+	
+	public HashTree getTree() {
+		return this.hashy;
+	}
+	
 	public static void main(String[] args) {
-		// Example of hand-coding a 3-bit geohash
-
-		// 1st bit of the geohash
-		double longitude = 0.0;
-		double[] bounds = {LONGITUDE_RANGE[0], LONGITUDE_RANGE[1]};
-		double midpoint = (bounds[0] + bounds[1]) / 2;
-		boolean bit = false;
-
-		if (longitude >= midpoint) {
-			bit = true;
-			bounds[0] = midpoint;
-		}
-		else {
-			bit = false;
-			bounds[1] = midpoint;
-		}
-
-		// 2nd bit of the geohash
-		boolean bit2 = false;
-		midpoint = (bounds[0] + bounds[1]) / 2;
-		if (longitude >= midpoint) {
-			bit2 = true;
-			bounds[0] = midpoint;
-		}
-		else {
-			bit2 = false;
-			bounds[1] = midpoint;
-		}
-
-		// 3rd bit of the geohash
-		boolean bit3 = false;
-		midpoint = (bounds[0] + bounds[1]) / 2;
-		if (longitude >= midpoint) {
-			bit3 = true;
-			bounds[0] = midpoint;
-		}
-		else {
-			bit3 = false;
-			bounds[1] = midpoint;
-		}
-		// Continue this process for however many bits of precision we need...
-
-
-		// Faux testing for now
-		assertEquals("100", toHashString(new boolean[] {bit, bit2, bit3}));
-
-		// If you can get the 1D geohash to pass all of these faux tests, you should be in
-		// good shape to complete the 2D version.
-		assertEquals("00000", geohashString(LONGITUDE_RANGE[0], LONGITUDE_RANGE, 5));
-		assertEquals("00000", geohashString(LATITUDE_RANGE[0], LATITUDE_RANGE, 5));
-		assertEquals("11111", geohashString(LONGITUDE_RANGE[1], LONGITUDE_RANGE, 5));
-		assertEquals("11111", geohashString(LATITUDE_RANGE[1], LATITUDE_RANGE, 5));
-		assertEquals("10000", geohashString(0, LONGITUDE_RANGE, 5));
-		assertEquals("11000", geohashString(90.0, LONGITUDE_RANGE, 5));
-		assertEquals("11100", geohashString(135.0, LONGITUDE_RANGE, 5));
-		assertEquals("11110", geohashString(157.5, LONGITUDE_RANGE, 5));
-		assertEquals("11111", geohashString(168.75, LONGITUDE_RANGE, 5));
-		assertEquals("01111", geohashString(-1, LONGITUDE_RANGE, 5));
-		assertEquals("00111", geohashString(-91.0, LONGITUDE_RANGE, 5));
-		assertEquals("00011", geohashString(-136.0, LONGITUDE_RANGE, 5));
-		assertEquals("00001", geohashString(-158.5, LONGITUDE_RANGE, 5));
-		assertEquals("00000", geohashString(-169.75, LONGITUDE_RANGE, 5));
+		GeoHash gh1 = new GeoHash(11);
+		System.out.println("Inserting 34.5809, 85.3221");
+		gh1.insert(34.5809, 85.3221);
+		
+		System.out.println("Inserting 34.5809, 85.3222");
+		gh1.insert(34.5809, 85.3222);
+		
+		System.out.println("Inserting 78.5221, 32.2354");
+		gh1.insert(78.5221, 32.2354);
+		
+		System.out.println("Tree");
+		System.out.println(gh1.getTree());
+		
 	}
 }

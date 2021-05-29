@@ -11,17 +11,27 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class HashTree { 
-
+	
+	private HashNode root;
+	
+	public HashTree() {
+		root = new HashNode(0); // level 0 for root
+	}
 	 
-	public static void main(String[] args) {
-		// 
+	public void insertGeoHash(String geoHash, double lat, double lon) {
+		root.insertGeoHash(geoHash, lat, lon);
+	}
+	
+	public boolean removeGeoHash(String geoHash, double lat, double lon) {
+		return root.removeGeoHash(geoHash, lat, lon);
+	}
+	
+	public static void main(String[] args) { 
+	}
+	
+	public String toString() {
+		return root.toString();
 	}
 }
-
-class CharNode {
-	/* 
-	 * This is a helper class to be used by the GHTree 
-	 * class to represent nodes in the binary tree. 
-	 */
-	private char value;
-}
+ 
+	
