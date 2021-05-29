@@ -9,7 +9,7 @@ public class GeoDBFactory {
          * Return an instance of your GeoDB implementation.
          *
          */
-        return null;
+        return new GeoHashDB(bitsOfPrecision);
     }
 
 }

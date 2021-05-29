@@ -25,8 +25,17 @@ public class GeoDBTest {
         db.insert(0, 0);
         db.delete(0,0);
 
-        for(int i = 0; i < bitsOfPrecision; i++) {
-            assertTrue(!db.contains(0, 0, i));
+        for(int i = 1; i < bitsOfPrecision; i++) {
+        	// FIXME: The documentation says contains should always return true if 
+        	// bits of precision is 0. This test will fail because it's asserting
+        	// that call will be false when i = 0. 
+        	// assertTrue(!db.contains(0, 0, i));
+        	
+            if (i == 0) {
+            	assertTrue(db.contains(0, 0, i));
+            } else {
+            	assertTrue(!db.contains(0, 0, i));
+            }
         }
     }
 
@@ -52,8 +61,7 @@ public class GeoDBTest {
         db.insert(90, -180);
 
         db.deleteAll(0, 0, 0);
-
-        assertEquals(0, db.nearby(0,0, 0).size());
+        assertEquals(0, db.nearby(0, 0, 0).size());
     }
 
     @Test

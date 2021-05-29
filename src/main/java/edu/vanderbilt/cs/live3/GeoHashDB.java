@@ -7,12 +7,13 @@
 package edu.vanderbilt.cs.live3;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.HashMap;
 
 import org.apache.commons.lang3.ArrayUtils; // To merge two lists with addAll()
 
-public class GeoHash implements GeoDB {
+public class GeoHashDB implements GeoDB {
 
 	public static final double[] LATITUDE_RANGE = { -90, 90 };
 	public static final double[] LONGITUDE_RANGE = { -180, 180 };
@@ -25,7 +26,7 @@ public class GeoHash implements GeoDB {
 	/* Begin GeoDB implementation */ 
 	
 	/* Constructor with number of bits of precision as a constructor parameter */ 
-	public GeoHash (int bitsOfPrecision) {
+	public GeoHashDB (int bitsOfPrecision) {
 		this.bitsOfPrecision = bitsOfPrecision;
 	}
 	/**
@@ -45,7 +46,7 @@ public class GeoHash implements GeoDB {
     */
    public void insert(double lat, double lon) { 
 	   String geoHash = toHashString(geohash(lat, lon, bitsOfPrecision));
-	   System.out.println("GeoHash = " + geoHash);
+	   System.out.println("Inserting GeoHash = " + geoHash);
 	   hashy.insertGeoHash(geoHash, lat, lon);
    }
 
@@ -65,14 +66,9 @@ public class GeoHash implements GeoDB {
     * @param lon
     */
    public boolean delete(double lat, double lon) {
-	   // only delete if saved ; check is O(1)
 	   String geoHash = toHashString(geohash(lat, lon, bitsOfPrecision));
-	   /* 
-	    * Since multiple coord pairs can map to same geoHash, 
-	    * don't delete the geoHash itself but delete the lat lon pair 
-	    * stored in the leaf/last character pointer of the geohash. 
-	    */
-	   return hashy.removeGeoHash(geoHash, lat, lon);  
+	   System.out.println("Removing GeoHash = " + geoHash);
+	   return hashy.removeGeoHash(geoHash, lat, lon);
    }
 
    /**
@@ -100,8 +96,10 @@ public class GeoHash implements GeoDB {
     * @param lon
     */
    public List<double[]> deleteAll(double lat, double lon, int bitsOfPrecision){
-	   List<double[]> deleted = new ArrayList<double[]>();
-	   return deleted;
+	   String geoHash = toHashString(geohash(lat, lon, bitsOfPrecision));
+	   System.out.println("Removing all entries that match geohash " + geoHash + 
+			   " up to " + bitsOfPrecision + " bits");
+	   return hashy.deleteAll(geoHash, bitsOfPrecision); 
    }
 
    /**
@@ -127,7 +125,11 @@ public class GeoHash implements GeoDB {
     * @param lon
     */
    public boolean contains(double lat, double lon, int bitsOfPrecision) {
-	   return false;
+	   String geoHash = toHashString(geohash(lat, lon, bitsOfPrecision));
+	   System.out.println("Checking if tree contains (" + lat + "," + lon + ")->" + 
+			   geoHash + " matching up to " + bitsOfPrecision + " characters");
+	   
+	   return hashy.contains(geoHash, lat, lon, bitsOfPrecision);
    }
 
    /**
@@ -154,7 +156,8 @@ public class GeoHash implements GeoDB {
     * @param lon
     */
    public List<double[]> nearby(double lat, double lon, int bitsOfPrecision){
-	   List<double[]> neighbors = new ArrayList<double[]>();
+	   String geoHash = toHashString(geohash(lat, lon, bitsOfPrecision));
+	   List<double[]> neighbors = hashy.neighbors(geoHash, bitsOfPrecision);
 	   return neighbors;
    }
 	/* End GeoDB implementation */ 
@@ -287,7 +290,7 @@ public class GeoHash implements GeoDB {
 	}
 	
 	public static void main(String[] args) {
-		GeoHash gh1 = new GeoHash(11);
+		GeoHashDB gh1 = new GeoHashDB(11);
 		System.out.println("Inserting 34.5809, 85.3221");
 		gh1.insert(34.5809, 85.3221);
 		
@@ -296,6 +299,55 @@ public class GeoHash implements GeoDB {
 		
 		System.out.println("Inserting 78.5221, 32.2354");
 		gh1.insert(78.5221, 32.2354);
+		
+		System.out.println("Inserting 48.5831, -19.2434");
+		gh1.insert(48.5831, -19.2434);
+		
+		System.out.println("Deleting 78.5221, 32.2354");
+		boolean deleted = gh1.delete(78.5221, 32.2354);
+		System.out.print("Deleted? " + deleted);
+		
+		
+		System.out.println("Inserting 34.5809, 85.3341");
+		gh1.insert(34.5809, 85.3341);
+		
+		System.out.println("Inserting 34.5239, 85.3222");
+		gh1.insert(34.5239, 85.3222);
+		
+		System.out.println("Inserting 71.222, 32.2354");
+		gh1.insert(71.222, 32.2354);
+		
+		System.out.println("Inserting 48.5831, -123.2434");
+		gh1.insert(48.5831, -123.2434);
+		 
+		System.out.println("Deleting everything matching 34.5809, 85.3222 up to 4 BoP");
+		List<double[]> deleted2 = gh1.deleteAll(34.5809, 85.3222, 4);
+		deleted2.forEach((item) -> {
+			System.out.println("Deleted " + Arrays.toString(item));
+		});
+		
+		
+		System.out.println("Checking if tree contains 71.222, 32.2354, BoP=3");
+		System.out.println(gh1.contains(71.222, 32.2354,3));
+		System.out.println("Checking if tree contains 71.222, 32.2354, BoP=4");
+		System.out.println(gh1.contains(71.222, 32.2354,4));
+		
+		System.out.println("Checking if tree contains 65.233, 32.2354, BoP=3");
+		System.out.println(gh1.contains(65.233, 32.2354,3));
+		System.out.println("Checking if tree contains 65.233, 32.2354, BoP=4");
+		System.out.println(gh1.contains(65.233, 32.2354,3));
+		
+		
+		System.out.println("Getting all neighbors of 65.233, 32.2354, BoP=3");
+		List<double[]> neighbors1 = gh1.nearby(65.233, 32.2354, 3);
+		neighbors1.forEach((item) -> {
+			System.out.println("Neighbor: " + Arrays.toString(item));
+		});
+		System.out.println("Getting all neighbors of 65.233, 32.2354, BoP=4");
+		List<double[]> neighbors2 = gh1.nearby(65.233, 32.2354, 4);
+		neighbors2.forEach((item) -> {
+			System.out.println("Neighbor: " + Arrays.toString(item));
+		});
 		
 		System.out.println("Tree");
 		System.out.println(gh1.getTree());

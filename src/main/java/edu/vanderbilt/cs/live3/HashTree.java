@@ -19,11 +19,28 @@ public class HashTree {
 	}
 	 
 	public void insertGeoHash(String geoHash, double lat, double lon) {
-		root.insertGeoHash(geoHash, lat, lon);
+		LatLon coords = new LatLon(lat, lon); 
+		root.insertGeoHash(geoHash, coords);
 	}
 	
 	public boolean removeGeoHash(String geoHash, double lat, double lon) {
-		return root.removeGeoHash(geoHash, lat, lon);
+		LatLon coords = new LatLon(lat, lon); 
+		return root.removeGeoHash(geoHash, coords);
+	}
+	
+	public List<double[]> deleteAll(String geoHash, int bitsOfPrecision){
+		return root.removeAllMatchingUpToNChars(
+				geoHash, bitsOfPrecision);
+		 
+	}
+	
+	public boolean contains(String geoHash, double lat, double lon, int bitsOfPrecision) {
+		LatLon coords = new LatLon(lat, lon);
+		return root.containsUpToNChars(geoHash, coords, bitsOfPrecision);
+	}
+	
+	public List<double[]> neighbors(String geoHash, int bitsOfPrecision) {
+		return root.neighborsUpToNChars(geoHash, bitsOfPrecision);
 	}
 	
 	public static void main(String[] args) { 
