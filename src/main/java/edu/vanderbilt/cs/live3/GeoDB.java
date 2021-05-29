@@ -1,3 +1,10 @@
+/* 
+ * GeoHashDB 
+ * CS 5278 Track 1 Assignment 2
+ * May 19, 2021
+ * Austin Hunt
+ */
+
 package edu.vanderbilt.cs.live3;
 
 import java.util.List;
