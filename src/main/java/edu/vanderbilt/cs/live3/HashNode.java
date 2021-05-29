@@ -44,7 +44,6 @@ public class HashNode {
 	
 	public void putGeoHash(String geoHashString) {
 		char key = geoHashString.charAt(0);
-		
 	}
 	
 	/*
